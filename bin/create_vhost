@@ -1,7 +1,7 @@
 #!/bin/bash
 # Create vhosts configurations for Apache2.4 or Nginx 1.9
 #
-# Version: 1.1
+# Version: 1.1a
 # Author: Gunter Grodotzki <gunter@grodotzki.co.za>
 
 
@@ -58,6 +58,7 @@ sudo chmod 640 /var/www/${h}/.ssh/`basename ${a}`
 
 cat <<EOF | sudo tee -a /etc/php-fpm.conf > /dev/null
 
+
 [${u}]
 user = ${u}
 group = ${u}
@@ -72,6 +73,7 @@ security.limit_extensions = .php
 EOF
 
 cat <<EOF | sudo tee -a /etc/php5/fpm/php.ini > /dev/null
+
 
 [PATH=/var/www/${h}/]
 open_basedir = "/var/www/${h}/www/:/tmp/:/usr/lib/php/:/usr/share/php/"
