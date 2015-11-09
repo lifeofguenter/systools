@@ -1,10 +1,13 @@
 #!/bin/bash
-# Create vhosts configurations for Apache2.4 or Nginx 1.9
 #
-# Version: 1.1a
 # Author: Gunter Grodotzki <gunter@grodotzki.co.za>
+# Version: 2015-11-10
+#
+# Create vhosts configurations for Apache2.4 or Nginx 1.9
 
+set -e
 
+# display usage information
 usage() {
   echo "Usage: $(basename ${0}) [OPTION]..." 1>&2
   echo "Create vhost for Apache 2.4 or Nginx 1.9 (+PHP-FPM)" 1>&2
@@ -58,7 +61,6 @@ sudo chmod 640 /var/www/${h}/.ssh/`basename ${a}`
 
 cat <<EOF | sudo tee -a /etc/php-fpm.conf > /dev/null
 
-
 [${u}]
 user = ${u}
 group = ${u}
@@ -74,7 +76,6 @@ EOF
 
 cat <<EOF | sudo tee -a /etc/php5/fpm/php.ini > /dev/null
 
-
 [PATH=/var/www/${h}/]
 open_basedir = "/var/www/${h}/www/:/tmp/:/usr/lib/php/:/usr/share/php/"
 error_log = /var/www/${h}/logs/phperror.log
@@ -84,7 +85,7 @@ echo 'sudo /etc/init.d/php-fpm reload'
 command -v nginx > /dev/null 2>&1
 if [[ "${?}" == "0" ]]
 then
-  cat <<EOF | sudo tee -a /etc/nginx/vhosts/${h}.conf > /dev/null
+  cat <<EOF | sudo tee /etc/nginx/vhosts/${h}.conf > /dev/null
 server {
   listen 80;
   server_name ${h} *.${h};
@@ -108,7 +109,7 @@ EOF
 
   echo 'sudo /etc/init.d/nginx reload'
 else
-  cat <<EOF | sudo tee -a /etc/apache2/sites-available/${h}.conf > /dev/null
+  cat <<EOF | sudo tee /etc/apache2/sites-available/${h}.conf > /dev/null
 <VirtualHost *:80>
   ServerName ${h}
   ServerAlias *.${h}
