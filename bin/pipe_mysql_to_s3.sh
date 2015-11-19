@@ -31,9 +31,11 @@ filename="${FILE_PREFIX}-$(date +%Y-%m-%d).zip"
 
 mysqldump \
 -h"${MYSQL_HOST}" \
--u"${MYSQL_HOST}" \
--p"${MYSQL_HOST}" \
-"${MYSQL_DB}" | zip "${filename}" -
+-u"${MYSQL_USER}" \
+-p"${MYSQL_USER}" \
+"${MYSQL_DB}" > dump.sql
+
+zip "${filename}" dump.sql
 
 aws \
 --profile "${AWS_PROFILE}" \
