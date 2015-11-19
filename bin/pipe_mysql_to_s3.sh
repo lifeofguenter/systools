@@ -37,6 +37,8 @@ mysqldump \
 
 zip "${filename}" dump.sql
 
+rm dump.sql
+
 aws \
 --profile "${AWS_PROFILE}" \
 --output text \
