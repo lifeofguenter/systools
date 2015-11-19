@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Author: Gunter Grodotzki (gunter@grodotzki.co.za)
+# Version: 2015-11-20
+#
+# Various Variable Functions.
+
+#
+# Returns false if any var of given chain is not set
+#
+variables::isset() {
+  for each in "${@}"; do
+    # remember: the varname is given as arg and is not the variable itself
+    # also we need to check if the var was actually set and not if its empty
+    if [ -z ${!each+x} ]; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+#
+# Returns true if var is a normal number
+#
+variables::ctype_digit() {
+  local re='^[0-9]+$'
+  if [[ "${1}" =~ ${re} ]]; then
+    return 0
+  fi
+  return 1
+}
