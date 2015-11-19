@@ -32,7 +32,7 @@ filename="${FILE_PREFIX}-$(date +%Y-%m-%d).zip"
 mysqldump \
 -h"${MYSQL_HOST}" \
 -u"${MYSQL_USER}" \
--p"${MYSQL_USER}" \
+-p"${MYSQL_PASS}" \
 "${MYSQL_DB}" > dump.sql
 
 zip "${filename}" dump.sql
