@@ -92,7 +92,7 @@ if [[ "${last_ip}" != "${current_ip}" ]] || [[ ! -z "${force}" ]]; then
     echo "  - ${sgroup}"
 
     # delete last_ip entry (if it exists)
-    if [[ ! -z "${last_ip}" ]] && aws --profile "${profile}" --output text ec2 describe-security-groups --group-ids "${sgroup}" | grep ${last_ip} > /dev/null; then
+    if [[ ! -z "${last_ip}" ]] && aws --profile "${profile}" --output text ec2 describe-security-groups --group-ids "${sgroup}" | grep "${last_ip}\|${current_ip}" > /dev/null; then
       aws --profile "${profile}" ec2 revoke-security-group-ingress --group-id "${sgroup}" --protocol tcp --port ${port} --cidr "${last_ip}/32"
     fi
 
