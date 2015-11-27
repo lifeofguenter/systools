@@ -82,7 +82,7 @@ else
   last_ip=$(cat ~/.config/dyn_ingress/lastip)
 fi
 
-if [[ "${last_ip}" != "${current_ip}" ]] || [[ -z "${force}" ]]; then
+if [[ "${last_ip}" != "${current_ip}" ]] || [[ ! -z "${force}" ]]; then
   echo "Updating security group(s):"
 
   read -ra list <<< "${sgroups}"
