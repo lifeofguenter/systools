@@ -74,12 +74,14 @@ if ! current_ip=$(curl --silent --fail --max-time 30 --connect-timeout 5 --retry
   logger -st dyn_ingress "Unable to reach curlmyip.net."
   exit 1
 fi
+
+last_ip_file="~/.config/dyn_ingress/lastip_${profile}"
 last_ip=
 
-if [[ ! -s ~/.config/dyn_ingress/lastip ]]; then
-  echo -n ${current_ip} > ~/.config/dyn_ingress/lastip
+if [[ ! -s "${last_ip_file}" ]]; then
+  echo -n ${current_ip} > "${last_ip_file}"
 else
-  last_ip=$(cat ~/.config/dyn_ingress/lastip)
+  last_ip=$(cat "${last_ip_file}")
 fi
 
 if [[ "${last_ip}" != "${current_ip}" ]] || [[ ! -z "${force}" ]]; then
@@ -99,7 +101,7 @@ if [[ "${last_ip}" != "${current_ip}" ]] || [[ ! -z "${force}" ]]; then
   done
 
   # update last_ip
-  echo -n ${current_ip} > ~/.config/dyn_ingress/lastip
+  echo -n ${current_ip} > "${last_ip_file}"
 else
   echo "Your IP did not change."
 fi
