@@ -92,18 +92,20 @@ if [[ "${last_ip}" != "${current_ip}" ]] || [[ ! -z "${force}" ]]; then
     echo "  - ${sgroup}"
 
     # delete last_ip entry (if it exists)
-    if [[ ! -z "${last_ip}" ]] && aws --profile "${profile}" --output text ec2 describe-security-groups --group-ids "${sgroup}" | grep "${last_ip}\|${current_ip}" > /dev/null; then
+    if [[ ! -z "${last_ip}" ]] && aws --profile "${profile}" --output text ec2 describe-security-groups --group-ids "${sgroup}" | grep "${last_ip}/32" > /dev/null; then
       aws --profile "${profile}" ec2 revoke-security-group-ingress --group-id "${sgroup}" --protocol tcp --port ${port} --cidr "${last_ip}/32"
     fi
 
-    # add current_ip entry
-    aws --profile "${profile}" ec2 authorize-security-group-ingress --group-id "${sgroup}" --protocol tcp --port ${port} --cidr "${current_ip}/32"
+    # add current_ip entry (if it does not exist yet)
+    if ! aws --profile "${profile}" --output text ec2 describe-security-groups --group-ids "${sgroup}" | grep "${current_ip}/32" > /dev/null; then
+      aws --profile "${profile}" ec2 authorize-security-group-ingress --group-id "${sgroup}" --protocol tcp --port ${port} --cidr "${current_ip}/32"
+    fi
   done
 
   # update last_ip
   echo -n ${current_ip} > "${last_ip_file}"
 else
-  echo "Your IP did not change."
+  echo "No IP change detected."
 fi
 
 exit 0
