@@ -28,10 +28,16 @@ usage() {
 dependencies=( curl getopts aws logger )
 for dependency in "${dependencies[@]}"; do
   if ! command -v ${dependency} > /dev/null 2>&1; then
-    echo "Please install '${dependency}' first."
+    logger -st dyn_ingress "Please install '${dependency}' first."
     exit 1
   fi
 done
+
+if command -v md5sum > /dev/null 2>&1; then
+  md5_bin=md5sum
+else
+  md5_bin=md5
+fi
 
 # getopts
 while getopts ":u:l:p:f" o; do
@@ -75,7 +81,7 @@ if ! current_ip=$(curl --silent --fail --max-time 30 --connect-timeout 5 --retry
   exit 1
 fi
 
-last_ip_file=~/.config/dyn_ingress/lastip_${profile}
+last_ip_file=~/.config/dyn_ingress/lastip_${profile}_$(echo -n "${sgroups}-${port}" | ${md5_bin} | awk '{ print $1 }')
 last_ip=
 
 if [[ ! -s "${last_ip_file}" ]]; then
