@@ -20,7 +20,7 @@ usage() {
   echo "Options:"                                   1>&2
   echo "    -b    b2 bucket name"                   1>&2
   echo "    -d    b2 directory/folder"              1>&2
-  echo "    -f    filter (whitelist)                1>&2
+  echo "    -f    filter (whitelist)"               1>&2
   echo "    -n    num of files to keep (newest)"    1>&2
   exit 1
 }
