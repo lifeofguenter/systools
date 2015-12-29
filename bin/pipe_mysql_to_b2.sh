@@ -47,29 +47,3 @@ rm dump.sql
 b2 upload_file "${B2_BUCKET}" "${filename}" "${B2_FOLDER}/${filename}"
 
 rm "${filename}"
-
-
-#
-# purge older backups
-#
-
-# get a list of all files
-b2 ls --long "${B2_BUCKET}" "${B2_FOLDER}" |
-# we are only interested in our backps
-grep "${FILE_PREFIX}" |
-# squash repeating spaces
-tr -s ' ' |
-# sort by (and only by) the 3rd column DESC (will show newest files first)
-sort -k3,3r |
-# loop through the results
-while read -r each_id each_status each_date each_time each_size each_file; do
-  n=$((n + 1))
-
-  # delete older snapshots after the desired amount is reached
-  if [ "${n}" -gt "${NUM_BACKUPS}" ]; then
-    echo "[Deleting] ${each_file} - ${each_date}"
-    b2 delete_file_version "${each_file}" "${each_id}"
-  fi
-done
-
-exit 0
