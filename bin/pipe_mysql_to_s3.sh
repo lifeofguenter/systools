@@ -35,6 +35,9 @@ fi
 filename="${FILE_PREFIX}-$(date +%Y-%m-%d).zip"
 
 mysqldump \
+--compress \
+--single-transaction \
+--quick \
 -h"${MYSQL_HOST}" \
 -u"${MYSQL_USER}" \
 -p"${MYSQL_PASS}" \

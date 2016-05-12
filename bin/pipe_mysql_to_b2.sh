@@ -34,7 +34,10 @@ fi
 
 filename="${FILE_PREFIX}-$(date +%Y-%m-%d).tar.xz"
 
-mysqldump -C \
+mysqldump \
+--compress \
+--single-transaction \
+--quick \
 -h"${MYSQL_HOST}" \
 -u"${MYSQL_USER}" \
 -p"${MYSQL_PASS}" \
