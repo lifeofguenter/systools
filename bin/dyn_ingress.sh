@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Author: Gunter Grodotzki (gunter@grodotzki.co.za)
-# Version: 2015-11-25
 #
 # AWS VPC SecurityGroups updater for dynamic IPs.
+#
 
 set -e
 
@@ -76,7 +76,7 @@ fi
 #
 # determine if IP changed
 #
-if ! current_ip=$(curl --silent --fail --max-time 30 --connect-timeout 5 --retry 3 --retry-delay 3 --compressed http://curlmyip.net); then
+if ! current_ip=$(curl --ipv4 --silent --fail --max-time 30 --connect-timeout 5 --retry 3 --retry-delay 3 --compressed http://curlmyip.net); then
   logger -st dyn_ingress "Unable to reach curlmyip.net."
   exit 1
 fi
