@@ -81,6 +81,8 @@ if ! current_ip=$(curl --ipv4 --silent --fail --max-time 30 --connect-timeout 5 
   exit 1
 fi
 
+current_ip=${current_ip//[$'\r\n']}
+
 last_ip_file=~/.config/dyn_ingress/lastip_${profile}_$(echo -n "${sgroups}-${port}" | ${md5_bin} | awk '{ print $1 }')
 last_ip=
 
