@@ -2,7 +2,7 @@
 
 readlink_bin="${READLINK_PATH:-readlink}"
 if ! "${readlink_bin}" -f test &> /dev/null; then
-  __DIR__="$(dirname "$(python -c "import os,sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "${0}")")"
+  __DIR__="$(dirname "$(python3 -c "import os,sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "${0}")")"
 else
   __DIR__="$(dirname "$("${readlink_bin}" -f "${0}")")"
 fi
@@ -17,19 +17,20 @@ add_to_inventory() {
   for host in "${@}"; do
     consolelog "adding ${host} to inventory..."
 
-    bofh_user_exists="$(remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "id -u bofh 2> /dev/null || echo error")"
+    bofh_user_exists="$(remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "id -u bofh 2> /dev/null || echo error" "${ssh_pass}")"
+
+    # install sudo (assumes logged in as root)
+    remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "dpkg -l | grep sudo || (apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -y -qq install sudo)" "${ssh_pass}"
 
     if [[ -z "${ssh_pass}" ]]; then
       echo "${host}:${SSH_PORT} ansible_user=${SSH_USER}" >> inventory-temp
-      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "dpkg -l | grep sudo || (apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -y -qq install sudo)"
-      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python"
+      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
         remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "id -u bofh || sudo useradd -d /home/bofh -m -s /bin/bash bofh"
       fi
     else
       echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_ssh_pass=${ssh_pass} ansible_sudo_pass=${ssh_pass}" >> inventory-temp
-      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "dpkg -l | grep sudo || (apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -y -qq install sudo)" "${ssh_pass}"
-      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python" "${ssh_pass}"
+      remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt" "${ssh_pass}"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
         remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S useradd -d /home/bofh -m -s /bin/bash bofh" "${ssh_pass}"
       fi
@@ -122,16 +123,16 @@ case "${task}" in
     add_to_inventory "${@}"
 
     # install minimal required packages
-    ansible all -i inventory-temp -m ansible.builtin.apt -ba "name=acl update_cache=yes cache_valid_time=3600"
+    ansible all -i inventory-temp -m ansible.builtin.apt -ba "name=acl update_cache=yes cache_valid_time=3600" -e 'ansible_python_interpreter=/usr/bin/python3'
 
     # password-less sudoer
-    ansible all -i inventory-temp -m lineinfile -ba "path=/etc/sudoers.d/100-no-pass-users line='bofh ALL=(ALL) NOPASSWD:ALL' create=yes mode=0440 validate='/usr/sbin/visudo -cf %s'"
-    ansible all -i inventory-temp -m lineinfile -ba "path=/etc/sudoers.d/100-no-pass-users line='Defaults:bofh "'!'"requiretty' create=yes mode=0440 validate='/usr/sbin/visudo -cf %s'"
+    ansible all -i inventory-temp -m lineinfile -ba "path=/etc/sudoers.d/100-no-pass-users line='bofh ALL=(ALL) NOPASSWD:ALL' create=yes mode=0440 validate='/usr/sbin/visudo -cf %s'" -e 'ansible_python_interpreter=/usr/bin/python3'
+    ansible all -i inventory-temp -m lineinfile -ba "path=/etc/sudoers.d/100-no-pass-users line='Defaults:bofh "'!'"requiretty' create=yes mode=0440 validate='/usr/sbin/visudo -cf %s'" -e 'ansible_python_interpreter=/usr/bin/python3'
 
     # create .ssh
-    ansible all -i inventory-temp -m file --become-user=bofh -ba "path=~/.ssh mode=0750 state=directory"
+    ansible all -i inventory-temp -m file --become-user=bofh -ba "path=~/.ssh mode=0750 state=directory" -e 'ansible_python_interpreter=/usr/bin/python3'
     for ssh_key in "${ssh_keys[@]}"; do
-      ansible all -i inventory-temp -m lineinfile --become-user=bofh -ba "path=~/.ssh/authorized_keys create=yes mode=0640 line='${ssh_key}'"
+      ansible all -i inventory-temp -m lineinfile --become-user=bofh -ba "path=~/.ssh/authorized_keys create=yes mode=0640 line='${ssh_key}'" -e 'ansible_python_interpreter=/usr/bin/python3'
     done
 
     # cleanup

@@ -20,7 +20,7 @@ remote_exec() {
     cmd="$(echo "${2}" | base64 -w0)"
   fi
 
-  if [[ ! -z "${3}" ]]; then
+  if [[ -n "${3}" ]]; then
     ret="$(sshpass -p "${3}" ssh \
       -p "${port}" \
       -o StrictHostKeyChecking=no \
