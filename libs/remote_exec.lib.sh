@@ -23,6 +23,8 @@ remote_exec() {
   if [[ -n "${3}" ]]; then
     ret="$(sshpass -p "${3}" ssh \
       -p "${port}" \
+      -o PreferredAuthentications=password \
+      -o PubkeyAuthentication=no \
       -o StrictHostKeyChecking=no \
       -n "${conn}" \
       "echo '${cmd}' | base64 -d | bash")"

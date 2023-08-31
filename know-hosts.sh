@@ -24,12 +24,15 @@ add_to_inventory() {
 
     if [[ -z "${ssh_pass}" ]]; then
       echo "${host}:${SSH_PORT} ansible_user=${SSH_USER}" >> inventory-temp
+
       remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
         remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "id -u bofh || sudo useradd -d /home/bofh -m -s /bin/bash bofh"
       fi
     else
-      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_ssh_pass=${ssh_pass} ansible_sudo_pass=${ssh_pass}" >> inventory-temp
+      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_password=${ssh_pass} ansible_become_password=${ssh_pass}" >> inventory-temp
+      printf '[ssh_connection]\nssh_args = "-o PreferredAuthentications=password -o PubkeyAuthentication=no"\n' > ansible.cfg
+
       remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt" "${ssh_pass}"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
         remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S useradd -d /home/bofh -m -s /bin/bash bofh" "${ssh_pass}"
@@ -119,7 +122,7 @@ case "${task}" in
       fi
     done
 
-    rm -f inventory-temp
+    rm -f inventory-temp ansible.cfg
     add_to_inventory "${@}"
 
     # install minimal required packages
@@ -136,7 +139,7 @@ case "${task}" in
     done
 
     # cleanup
-    rm -f inventory-temp
+    rm -f inventory-temp ansible.cfg
     ;;
 esac
 
