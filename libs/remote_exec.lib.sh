@@ -4,6 +4,12 @@ remote_exec() {
   local conn
   local port
 
+  args=()
+
+  if [[ -n "${SSH_JUMP_HOST}" ]]; then
+    args+=("-J ${SSH_JUMP_HOST}")
+  fi
+
   # support user@host#port
   if [[ "${1}" == *"#"* ]]; then
     conn="${1%#*}"
@@ -27,12 +33,14 @@ remote_exec() {
       -o PubkeyAuthentication=no \
       -o StrictHostKeyChecking=no \
       -n "${conn}" \
+      "${args[@]}" \
       "echo '${cmd}' | base64 -d | bash")"
   else
     ret="$(ssh \
       -p "${port}" \
       -o StrictHostKeyChecking=no \
       -n "${conn}" \
+      "${args[@]}" \
       "echo '${cmd}' | base64 -d | bash")"
   fi
 
