@@ -23,15 +23,15 @@ add_to_inventory() {
     remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "dpkg -l | grep sudo || (apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get -y -qq install sudo)" "${ssh_pass}"
 
     if [[ -z "${ssh_pass}" ]]; then
-      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER}" >> inventory-temp
+      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_python_interpreter=${PYTHON_BIN:-/usr/bin/python3}" >> inventory-temp
 
       remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "sudo DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
         remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "id -u bofh || sudo useradd -d /home/bofh -m -s /bin/bash bofh"
       fi
     else
-      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_password=${ssh_pass} ansible_become_password=${ssh_pass}" >> inventory-temp
-      printf '[ssh_connection]\nssh_args = "-o PreferredAuthentications=password -o PubkeyAuthentication=no"\n' > ansible.cfg
+      echo "${host}:${SSH_PORT} ansible_user=${SSH_USER} ansible_password=${ssh_pass} ansible_become_password=${ssh_pass} ansible_python_interpreter=${PYTHON_BIN:-/usr/bin/python3}" >> inventory-temp
+      printf '[ssh_connection]\nssh_args = -o PreferredAuthentications=password -o PubkeyAuthentication=no\n' > ansible.cfg
 
       remote_exec "${SSH_USER}@${host}#${SSH_PORT}" "echo '${ssh_pass}' | sudo -S DEBIAN_FRONTEND=noninteractive apt-get -y -qq install python3 python3-apt" "${ssh_pass}"
       if [[ "${SSH_USER}" != "bofh" ]] && [[ "${bofh_user_exists}" == "error" ]]; then
